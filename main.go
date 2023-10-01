@@ -6,45 +6,46 @@ import (
 )
 
 func main() {
-	str, _ := disguise("1 http://11111111111 2 http://22222222222 http://sdfaiojdsfoi http://sd8923892348923")
-
+	str := disguise("1 http://11111111111 2 http://22222222222 http://sdfaiojdsfoi http://sd8923892348923")
 	//nolint:forbidigo
 	fmt.Println(str)
 }
 
-func disguise(str string) (string, bool) {
-	var (
-		strArr      []byte
-		finalString []string
-		words       []string
-	)
+const (
+	mask   byte   = '*'       // disguise symbol
+	space  string = " "       // line separator character
+	prefix string = "http://" // a prefix that does not need to be masked
+)
 
-	const (
-		mask  byte   = '*' // символ маскировки
-		space string = " " // символ разделения слов в строке
-	)
-
-	if !strings.Contains(str, "http://") { // если не найдено ни одного вхождения возвращаем false
-		return "", false
+func disguise(str string) string {
+	// if no occurrences are found, return false
+	if !strings.Contains(str, prefix) {
+		return str
 	}
 
-	words = strings.Fields(str) // разбиваем строку на отдельные слова
+	// split the line into separate words
+	words := strings.Fields(str) //
+	finalArr := make([]string, 0, len(words))
 
 	for _, word := range words {
-		if strings.Contains(word, "http://") { // если найдено вхождение
-			for i := 0; i != len(word); i++ {
-				strArr = append(strArr, word[i]) // добавляем его в промежуточный слайс
-			}
-			for i := 7; i != len(word); i++ { // первые 7 элементов слова это "http://" их маскировать ненадо
-				strArr[i] = mask // маскируем ссылку
+		// if an occurrence is found
+		if strings.Contains(word, prefix) {
+			var strArr = []byte(word)
+
+			// the first 7 elements of the word are "http://" they do not need to be masked
+			for i := len(prefix); i != len(word); i++ {
+				strArr[i] = mask // mask the link
 			}
 
-			finalString = append(finalString, string(strArr)) // добавляем ссылку в финальный слайс
-			strArr = nil
-		} else {
-			finalString = append(finalString, word) // добавляем остальные слова в финальный слайс
+			// add a link to the final slice
+			finalArr = append(finalArr, string(strArr))
+
+			continue
 		}
+		// add the remaining words to the final slice
+		finalArr = append(finalArr, word)
 	}
 
-	return strings.Join(finalString, space), true // соединяем элементы слайса в строку через пробел и возвращаем строку
+	// we connect the elements of the slice into a string separated by a space and return the string
+	return strings.Join(finalArr, space)
 }
