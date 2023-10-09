@@ -12,7 +12,11 @@ func main() {
 		//nolint:forbidigo
 		fmt.Println(str)
 	} else if os.Args[1] == "f" {
-
+		m := Mask{mask: '*', space: " ", prefix: "http://"}
+		err := m.DisguiseFile("links.txt")
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 }
