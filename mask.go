@@ -46,14 +46,14 @@ func (m *Mask) DisguiseFile(path string, disguisedLinks string) error {
 		panic(err)
 	}
 
-	finalArr := m.masking(words)
+	finalArr := strings.Join(m.masking(words), m.space)
 
-	for _, word := range finalArr {
-		_, errOpen := f.WriteString(word + "\n")
-		if errOpen != nil {
-			panic(errOpen)
-		}
+	// for _, word := range finalArr {
+	_, errOpen := f.WriteString(finalArr)
+	if errOpen != nil {
+		panic(errOpen)
 	}
+	// }
 
 	return nil
 }
