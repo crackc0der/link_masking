@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -28,36 +27,43 @@ func (m *Mask) DisguiseStr(str string) string {
 	return strings.Join(finalArr, m.space)
 }
 
-func (m *Mask) DisguiseFile(path string) error {
+func (m *Mask) DisguiseFile(path string, disguisedLinks string) error {
 	var data []byte
-	file, err_read := ioutil.ReadFile(path)
-	if err_read != nil {
-		return err_read
+
+	file, errRead := ioutil.ReadFile(path)
+	if errRead != nil {
+		panic(errRead)
 	}
 	// break all the lines into words
 	for _, str := range file {
 		data = append(data, str)
 	}
 	// convert the byte array to a string array
+
 	words := strings.Fields(string(data))
-	f, err := os.OpenFile("disguised_links.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+
+	f, err := os.OpenFile(disguisedLinks, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		panic(err)
 	}
+
 	finalArr := m.masking(words)
 
 	for _, word := range finalArr {
-		_, err_open := f.WriteString(word + "\n")
-		if err_open != nil {
-			fmt.Println(err_open)
+		_, errOpen := f.WriteString(word + "\n")
+		if errOpen != nil {
+			panic(errOpen)
 		}
 	}
+
 	return nil
 }
 
 func (m *Mask) masking(words []string) []string {
 	finalArr := make([]string, 0, len(words))
+
 	for _, word := range words {
+
 		// if an occurrence is found
 		if strings.Contains(word, m.prefix) {
 			var strArr = []byte(word)
@@ -68,10 +74,12 @@ func (m *Mask) masking(words []string) []string {
 
 			// add a link to the final slice
 			finalArr = append(finalArr, string(strArr))
+
 			continue
 		}
 		// add the remaining words to the final slice
 		finalArr = append(finalArr, word)
 	}
+
 	return finalArr
 }

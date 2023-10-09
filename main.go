@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 )
 
@@ -10,13 +9,12 @@ func main() {
 		m := Mask{mask: '*', space: " ", prefix: "http://"}
 		str := m.DisguiseStr("1 http://11111111111 2 http://22222222222 http://sdfaiojdsfoi http://sd8923892348923")
 		//nolint:forbidigo
-		fmt.Println(str)
+		panic(str)
 	} else if os.Args[1] == "f" {
 		m := Mask{mask: '*', space: " ", prefix: "http://"}
-		err := m.DisguiseFile("links.txt")
+		err := m.DisguiseFile("links.txt", "disguised_links.txt")
 		if err != nil {
-			fmt.Println(err)
+			panic(err)
 		}
 	}
-
 }
