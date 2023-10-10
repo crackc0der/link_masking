@@ -7,17 +7,11 @@ import (
 )
 
 type Mask struct {
-	mask   byte
-	space  string
 	prefix string
 }
 
 func (m *Mask) DisguiseStr(str string) string {
 	space := " "
-	// if no occurrences are found, return false
-	if !strings.Contains(str, m.prefix) {
-		return str
-	}
 
 	// split the line into separate words
 	words := strings.Fields(str) //
@@ -63,16 +57,28 @@ func (m *Mask) DisguiseFile(path string, disguisedLinks string) error {
 func (m *Mask) masking(words []string) []string {
 	finalArr := make([]string, 0, len(words))
 	var mask byte = 42
+	prefixHTTP := "http"
+	prefixHTTPS := "https"
 
 	for _, word := range words {
 		// if an occurrence is found
-		if strings.Contains(word, m.prefix) {
+		if strings.Contains(word, prefixHTTPS) {
 			var strArr = []byte(word)
 			// the first 7 elements of the word are "http://" they do not need to be masked
-			for i := len(m.prefix); i != len(word); i++ {
+			for i := len(prefixHTTPS) + 3; i != len(word); i++ {
 				strArr[i] = mask // mask the link
 			}
 
+			// add a link to the final slice
+			finalArr = append(finalArr, string(strArr))
+
+			continue
+		} else if strings.Contains(word, prefixHTTP) {
+			var strArr = []byte(word)
+			// the first 7 elements of the word are "http://" they do not need to be masked
+			for i := len(prefixHTTP) + 3; i != len(word); i++ {
+				strArr[i] = mask // mask the link
+			}
 			// add a link to the final slice
 			finalArr = append(finalArr, string(strArr))
 
