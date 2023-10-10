@@ -13,6 +13,7 @@ type Mask struct {
 }
 
 func (m *Mask) DisguiseStr(str string) string {
+	space := " "
 	// if no occurrences are found, return false
 	if !strings.Contains(str, m.prefix) {
 		return str
@@ -24,11 +25,12 @@ func (m *Mask) DisguiseStr(str string) string {
 	finalArr := m.masking(words)
 
 	// we connect the elements of the slice into a string separated by a space and return the string
-	return strings.Join(finalArr, m.space)
+	return strings.Join(finalArr, space)
 }
 
 func (m *Mask) DisguiseFile(path string, disguisedLinks string) error {
 	var data []byte
+	space := " "
 
 	file, errRead := ioutil.ReadFile(path)
 	if errRead != nil {
@@ -41,12 +43,12 @@ func (m *Mask) DisguiseFile(path string, disguisedLinks string) error {
 
 	words := strings.Fields(string(data))
 
-	f, err := os.OpenFile(disguisedLinks, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	f, err := os.OpenFile(disguisedLinks, os.O_APPEND|os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		panic(err)
 	}
 
-	finalArr := strings.Join(m.masking(words), m.space)
+	finalArr := strings.Join(m.masking(words), space)
 
 	// for _, word := range finalArr {
 	_, errOpen := f.WriteString(finalArr)
@@ -60,6 +62,7 @@ func (m *Mask) DisguiseFile(path string, disguisedLinks string) error {
 
 func (m *Mask) masking(words []string) []string {
 	finalArr := make([]string, 0, len(words))
+	var mask byte = 42
 
 	for _, word := range words {
 		// if an occurrence is found
@@ -67,7 +70,7 @@ func (m *Mask) masking(words []string) []string {
 			var strArr = []byte(word)
 			// the first 7 elements of the word are "http://" they do not need to be masked
 			for i := len(m.prefix); i != len(word); i++ {
-				strArr[i] = m.mask // mask the link
+				strArr[i] = mask // mask the link
 			}
 
 			// add a link to the final slice
