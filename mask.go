@@ -24,6 +24,7 @@ func (m *Mask) DisguiseStr(str string) string {
 
 func (m *Mask) DisguiseFile(path string, disguisedLinks string) error {
 	var data []byte
+
 	space := " "
 
 	file, errRead := ioutil.ReadFile(path)
@@ -56,16 +57,19 @@ func (m *Mask) DisguiseFile(path string, disguisedLinks string) error {
 
 func (m *Mask) masking(words []string) []string {
 	finalArr := make([]string, 0, len(words))
+
 	var mask byte = 42
+
 	prefixHTTP := "http"
 	prefixHTTPS := "https"
+	sufixProtocolLen := 3
 
 	for _, word := range words {
 		// if an occurrence is found
 		if strings.Contains(word, prefixHTTPS) {
 			var strArr = []byte(word)
 			// the first 7 elements of the word are "http://" they do not need to be masked
-			for i := len(prefixHTTPS) + 3; i != len(word); i++ {
+			for i := len(prefixHTTPS) + sufixProtocolLen; i != len(word); i++ {
 				strArr[i] = mask // mask the link
 			}
 
@@ -76,7 +80,7 @@ func (m *Mask) masking(words []string) []string {
 		} else if strings.Contains(word, prefixHTTP) {
 			var strArr = []byte(word)
 			// the first 7 elements of the word are "http://" they do not need to be masked
-			for i := len(prefixHTTP) + 3; i != len(word); i++ {
+			for i := len(prefixHTTP) + sufixProtocolLen; i != len(word); i++ {
 				strArr[i] = mask // mask the link
 			}
 			// add a link to the final slice
