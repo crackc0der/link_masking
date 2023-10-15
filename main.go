@@ -16,7 +16,8 @@ func main() {
 				Usage: "from line",
 				Action: func(cCtx *cli.Context) error {
 					m := Mask{}
-					str := m.DisguiseStr("1 http://11111111111 2 http://22222222222 http://sdfaiojdsfoi http://sd8923892348923")
+					str := m.DisguiseStr(`1 http://11111111111 2 https://asd.com 23 http://22222222222 
+					23 http://sdfaiojdsfoi asdasd https://qwe.ru 23234 http://sd8923892348923`)
 					//nolint:forbidigo
 					fmt.Println(str)
 

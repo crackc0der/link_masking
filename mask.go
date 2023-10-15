@@ -3,94 +3,121 @@ package main
 import (
 	"io/ioutil"
 	"os"
-	"strings"
 )
 
 type Mask struct {
-	prefix string
 }
 
 func (m *Mask) DisguiseStr(str string) string {
-	space := " "
-
-	// split the line into separate words
-	words := strings.Fields(str) //
-
-	finalArr := m.masking(words)
-
-	// we connect the elements of the slice into a string separated by a space and return the string
-	return strings.Join(finalArr, space)
+	return m.masking(str)
 }
 
 func (m *Mask) DisguiseFile(path string, disguisedLinks string) error {
-	var data []byte
-
-	space := " "
-
 	file, errRead := ioutil.ReadFile(path)
 	if errRead != nil {
-		panic(errRead)
+		return errRead
 	}
-	// break all the lines into words
-	data = append(data, file...)
 
-	// convert the byte array to a string array
+	data := m.masking(string(file))
 
-	words := strings.Fields(string(data))
-
-	f, err := os.OpenFile(disguisedLinks, os.O_APPEND|os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	endFile, err := os.OpenFile(disguisedLinks, os.O_APPEND|os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		panic(err)
 	}
 
-	finalArr := strings.Join(m.masking(words), space)
-
-	// for _, word := range finalArr {
-	_, errOpen := f.WriteString(finalArr)
+	_, errOpen := endFile.WriteString(data)
 	if errOpen != nil {
-		panic(errOpen)
+		return errOpen
 	}
-	// }
 
 	return nil
 }
 
-func (m *Mask) masking(words []string) []string {
-	finalArr := make([]string, 0, len(words))
-
+func (m *Mask) masking(str string) string {
 	var mask byte = 42
 
 	prefixHTTP := "http"
 	prefixHTTPS := "https"
 	sufixProtocolLen := 3
+	var strArr = []byte(str)
 
-	for _, word := range words {
-		// if an occurrence is found
-		if strings.Contains(word, prefixHTTPS) {
-			var strArr = []byte(word)
-			// the first 7 elements of the word are "http://" they do not need to be masked
-			for i := len(prefixHTTPS) + sufixProtocolLen; i != len(word); i++ {
-				strArr[i] = mask // mask the link
+	var space byte = 32
+
+	http := m.KMPSearch(str, prefixHTTP)
+	https := m.KMPSearch(str, prefixHTTPS)
+
+	for _, v := range http {
+		for i := v + len(prefixHTTP) + sufixProtocolLen; i != len(str); i++ {
+			if strArr[i] == space {
+				break
 			}
 
-			// add a link to the final slice
-			finalArr = append(finalArr, string(strArr))
-
-			continue
-		} else if strings.Contains(word, prefixHTTP) {
-			var strArr = []byte(word)
-			// the first 7 elements of the word are "http://" they do not need to be masked
-			for i := len(prefixHTTP) + sufixProtocolLen; i != len(word); i++ {
-				strArr[i] = mask // mask the link
-			}
-			// add a link to the final slice
-			finalArr = append(finalArr, string(strArr))
-
-			continue
+			strArr[i] = mask
 		}
-		// add the remaining words to the final slice
-		finalArr = append(finalArr, word)
 	}
 
-	return finalArr
+	for _, v := range https {
+		for i := v + len(prefixHTTPS) + sufixProtocolLen; i != len(str); i++ {
+			if strArr[i] == space {
+				break
+			}
+
+			strArr[i] = mask
+		}
+	}
+
+	return string(strArr)
+}
+
+func (m *Mask) KMPSearch(text, pattern string) []int {
+	occurrences := []int{}
+	textSize := len(text)
+	patternSize := len(pattern)
+	lps := m.computeLPSArray(pattern, patternSize)
+
+	i := 0
+	j := 0
+
+	for i < textSize {
+		if text[i] == pattern[j] {
+			i++
+			j++
+		}
+
+		if j == patternSize {
+			occurrences = append(occurrences, i-j)
+			j = lps[j-1]
+		} else if i < textSize && text[i] != pattern[j] {
+			if j != 0 {
+				j = lps[j-1]
+			} else {
+				i++
+			}
+		}
+	}
+
+	return occurrences
+}
+
+func (m *Mask) computeLPSArray(pattern string, a int) []int {
+	lps := make([]int, a)
+	length := 0
+	i := 1
+
+	for i < a {
+		if pattern[i] == pattern[length] {
+			length++
+			lps[i] = length
+			i++
+		} else {
+			if length != 0 {
+				length = lps[length-1]
+			} else {
+				lps[i] = 0
+				i++
+			}
+		}
+	}
+
+	return lps
 }
