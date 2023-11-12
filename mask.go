@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"os"
 )
 
@@ -13,7 +12,7 @@ func (m *Mask) DisguiseStr(str string) string {
 }
 
 func (m *Mask) DisguiseFile(path string, disguisedLinks string) error {
-	file, errRead := ioutil.ReadFile(path)
+	file, errRead := os.ReadFile(path)
 	if errRead != nil {
 		return errRead
 	}
@@ -36,9 +35,8 @@ func (m *Mask) DisguiseFile(path string, disguisedLinks string) error {
 func (m *Mask) masking(str string) string {
 	var mask byte = 42
 
-	prefixHTTP := "http"
-	prefixHTTPS := "https"
-	sufixProtocolLen := 3
+	prefixHTTP := "http://"
+	prefixHTTPS := "https://"
 	var strArr = []byte(str)
 
 	var space byte = 32
@@ -47,7 +45,7 @@ func (m *Mask) masking(str string) string {
 	https := m.KMPSearch(str, prefixHTTPS)
 
 	for _, v := range http {
-		for i := v + len(prefixHTTP) + sufixProtocolLen; i != len(str); i++ {
+		for i := v + len(prefixHTTP); i != len(str); i++ {
 			if strArr[i] == space {
 				break
 			}
@@ -57,7 +55,7 @@ func (m *Mask) masking(str string) string {
 	}
 
 	for _, v := range https {
-		for i := v + len(prefixHTTPS) + sufixProtocolLen; i != len(str); i++ {
+		for i := v + len(prefixHTTPS); i != len(str); i++ {
 			if strArr[i] == space {
 				break
 			}
